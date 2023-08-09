@@ -1,0 +1,160 @@
+<style>
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.svg-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1; 
+  overflow: visible;
+  width: 90vw; /* Adjust as needed */
+  height: 90vh; /* Adjust as needed */
+}
+/*
+#bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  z-index: -1; 
+  
+}
+*/
+  #wind-circle {
+    filter: url("#noise1");
+    transform-origin: center center;
+    /*transform: rotate(45deg);*/
+    z-index: -1;
+
+  }
+
+#container {
+  width: 100vw;
+  height: 100vh;
+}
+</style>
+
+<div id="container">
+  
+<div id="controls">
+  <div class="slider">
+<input type="range" id="zoom" min=".4" max="4" 
+  step=".4"
+  onchange="setScale(this.value)"
+  name="zoom"
+  default="1"
+/>
+<label for="zoom">Set Scale</label>
+</div>
+<div class="slider">
+<input type="range" id="rotate" min="-180" max="180" 
+  step="20"
+  onchange="setRotation(this.value)"
+  name="rotate"
+  default="0"
+/>
+<label for="rotate">Rotate</label>
+</div>
+<div class="slider">
+<input type="range" id="depth" min="1" max="10" 
+  step=".2"
+  onchange="document.getElementById('lightdepth')
+                    .setAttribute('values', `.5; ${this.value}; ${this.value}; .5` )"
+  name="depth"
+  default="3"
+/>
+<label for="rotate">Contrast</label>
+</div>
+</div>
+
+<svg  id="bg"  
+      class="svg-container"
+      xmlns="http://www.w3.org/2000/svg" 
+      viewbox="0 0 800 800" >
+
+
+  <filter id="noise1" x="0" y="0" >
+    <!-- Generate Fractal Noise -->
+      <feTurbulence id="animate" type="fractalNoise" baseFrequency="0.02 0.1" numOctaves="2"
+                    result="noise" />
+        <!-- Apply lighting effect to Alpha channel -->
+        <feDiffuseLighting id='light' in='noise' 
+                           result="wind"
+                           lighting-color='white' 
+                           surfaceScale='3'>
+          
+          <!-- Define the type of light to use and it's location/elevation -->
+          <feDistantLight azimuth='45' elevation='60' />
+    </feDiffuseLighting>
+
+    <!-- this is necessary to clip the filter to the circle -->
+    <feComposite operator="in" in="wind" in2="SourceGraphic"/>
+    
+    <!-- Animate the baseFrequency to shift the fractal noise over time -->
+    <animate xlink:href="#animate" 
+             attributeName="baseFrequency" dur="5s" 
+             values="0.01 0.05; 0.0071  0.03"
+             repeatCount="indefinite" />
+    
+    <!-- Animate the lighting "surface scale" to subtly fade out/in at animation loop
+         (this is to prevent disruptive flicker)  -->
+    <animate id="lightdepth" xlink:href="#light" 
+             attributeName="surfaceScale" dur="5s" 
+             values=".5; 3; 3; .5"
+             keyTimes="0; .2; .8; 1"
+             repeatCount="indefinite" />
+  <!-- end of the filter definition -->             
+  </filter>
+  <!-- map the filter onto a circle so we can rotate it to manipulate wind direction -->
+  <circle id="wind-circle" cx="50%" cy="50%" r="200" style="filter: url(#noise1);" />
+  
+  
+</svg>
+</div>
+<script>
+  //window.addEventListener('DOMContentLoaded', centerElement);
+  
+  const svgBox = document.getElementById("bg");
+  let scale = 1;
+  let rotation = "0deg";
+  function _applyTransform(){
+      document.getElementById('wind-circle')
+      .style.transform = `rotate(${rotation}) scale(${scale})`; 
+  }
+  function setScale(s) {
+    scale = s;
+    _applyTransform();
+  }
+
+  function setRotation(r) {
+    rotation = `${r}deg`;
+    _applyTransform();
+  }
+  function setSurfaceScale(s) {
+    document.getElementById('light').animate();
+  }
+
+  
+  // function centerElement() {
+  //   const circle = document.getElementById('wind-circle');
+  //   circle.style.visibility = 'hidden'; // Hide the element initially to prevent flickering
+
+  //   // Center the element vertically and horizontally
+  //   const windowHeight = window.innerHeight;
+  //   const windowWidth = window.innerWidth;
+  //   const elementHeight = circle.offsetHeight;
+  //   const elementWidth = circle.offsetWidth;
+
+  //   circle.style.top = (windowHeight / 2) - (elementHeight / 2) + 'px';
+  //   circle.style.left = (windowWidth / 2) - (elementWidth / 2) + 'px';
+
+  //   circle.style.visibility = 'visible'; // Make the element visible again
+  // }
+
+</script>
+
