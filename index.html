@@ -1,12 +1,113 @@
 <HTML>
 <head>
 	<link rel="stylesheet" href="CSS/style.css" />
-	<script src="JS/app.js"></script>
+	<!-- <script src="JS/app.js"></script> -->
+	
 	</head>
-	<body onload="main()">
+	<body >
 		<div id="container">
+			<div id="controls">
+  <div class="slider">
+<input type="range" id="zoom" min=".25" max="1" 
+  step=".25"
+  onchange="setScale(this.value)"
+  name="zoom"
+  value="1"
+/>
+<label for="zoom">Scale</label>
+</div>
+<div class="slider">
+<input type="range" id="rotate" min="-180" max="180" 
+  step="10"
+  onchange="setRotation(this.value)"
+  name="rotate"
+  value="0"
+/>
+<label for="rotate">Rotate</label>
+</div>
+<div class="slider">
+<input type="range" id="combo" min="1" max="10" 
+  step="1"
+  onchange="shrinkAndSpin(this.value)"
+  name="combo"
+  value="10"
+/>
+<label for="combo">Rotate and Scale</label>
+</div>
+
+</div>
+<div class="input">
+<input type="checkbox" id="autoplay" name="autoplay" label="Auto-play" onchange="runAutoplay(this.checked)" />
+<labe for="autoplay">Auto-play</labe>
+</div>
+<input type="button" value="Reset" onclick="reset()" />
+
 <div id="ring-container">
 <img id="ring" src="https://birdringassets.onrender.com/SVG/WeatherRing-cropped.svg" />
 </div>
 </div>
+<script>
+	let scale = 1;
+	let rotation = "0deg";
+	function reset(){
+		try{
+			document.getElementById('ring-container').getAnimations()[0].cancel();	
+		}catch{}
+		
+		scale = 1;
+		rotation = "0deg";
+		_applyTransform();
+		document.getElementById('ring-container').getAnimations()[0].cancel();
+
+	}  
+		  function _applyTransform(){
+		      document.getElementById('ring-container')
+		      .style.transform = `rotate(${rotation}) scale(${scale})`; 
+		  }
+		  function setScale(s) {
+		    scale = s;
+		    _applyTransform();
+		  }
+
+		  function setRotation(r) {
+		    rotation = `${r}deg`;
+		    _applyTransform();
+		  }
+		  function shrinkAndSpin(i){
+		  	scale = Math.max(.2, 1 - 1/i);
+		  	console.log(scale);
+		  	rotation = `${i * 36}deg`;
+		  	_applyTransform();
+		  }
+		  
+function runAutoplay(checked){
+	const anim = document.getElementById('ring-container').getAnimations()[0];
+	if (checked){
+		if (anim == null){
+			document.getElementById('ring-container').animate(
+				[
+					{ transform: "rotate(0)" },
+					{ transform: "rotate(360deg)" },
+				],
+				{
+				    // timing options
+				    duration: 30000,
+				    iterations: Infinity,
+				}
+			);
+			return;		
+		}
+		anim.play();
+	}
+	
+	if (!checked){
+		anim.pause();
+	
+	}
+	
+
+}
+  
+
+	</script>
 </body>
